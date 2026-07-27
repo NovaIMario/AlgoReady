@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AlgoReady</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+  <nav class="nav">
+    <div class="logo">ALGO<span>READY</span></div>
+    <div class="nav-links"><a href="/">Problems</a></div>
+  </nav>
+
+  <header class="hero">
+    <div class="hero-badge">// competitive programming</div>
+    <h1>Train smarter.<br><span>Get hired.</span></h1>
+    <p class="hero-sub">Search problems, get AI hints, track your progress</p>
+  </header>
+
+  <main class="main">
+    <section class="search-section">
+      <div class="search-card">
+        <div class="search-row">
+
+          <div class="field autocomplete">
+            <label for="name">Name</label>
+            <input id="name" placeholder="Search problem name..." autocomplete="off" />
+            <div id="name-dropdown" class="dropdown"></div>
+          </div>
+
+          <div class="field autocomplete">
+            <label for="rating">Rating</label>
+            <input id="rating" placeholder="e.g. 1200" autocomplete="off" />
+            <div id="rating-dropdown" class="dropdown"></div>
+          </div>
+
+          <div class="field autocomplete">
+            <label for="tag">Tag</label>
+            <input id="tag" placeholder="e.g. dp" autocomplete="off" />
+            <div id="tag-dropdown" class="dropdown"></div>
+          </div>
+
+          <button id="search-btn" onclick="search()">Search →</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="results-section" class="results-section" hidden>
+      <header class="results-header">
+        <span id="results-count" class="results-count"></span>
+      </header>
+
+      <div id="results" class="results-grid" aria-live="polite"></div>
+
+      <div id="load-more-wrap" class="pagination" hidden>
+        <button id="prev-btn" class="page-btn" onclick="prevPage()">← Prev</button>
+        <button id="next-btn" class="page-btn" onclick="nextPage()">Next →</button>
+      </div>
+    </section>
+
+    <div id="empty" class="empty-state" hidden>
+      <div class="empty-icon">∅</div>
+      <p>No problems found. Try different filters.</p>
+    </div>
+
+    <div id="error" class="error-state" hidden>
+      <p>Failed to fetch problems.</p>
+    </div>
+  </main>
+
+  <script>
+    const NAMES = {{ names | tojson }};
+    const CF_TAGS = {{ cf_tags | tojson }};
+    const RATINGS = {{ ratings | tojson }};
+  </script>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>

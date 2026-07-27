@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ name }} — {{ contestId }}{{ index }}</title>
+
+    <link rel="stylesheet" href="/static/problem.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+    <script>
+        require.config({
+            paths: {
+                vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs"
+            }
+        });
+    </script>
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="left">
+            <h1>{{ name }}</h1>
+            <div class="meta">
+                Contest: {{ contestId }} — Index: {{ index }} — Rating: {{ rating }}
+            </div>
+
+            <div id="problem-text">
+                {{ problem_html | safe }}
+            </div>
+        </div>
+
+        <div class="right">
+            <div id="editor"></div>
+
+            <div class="run-bar">
+                <div class="run-input">
+                    <label>Input</label>
+                    <textarea id="run-input"></textarea>
+                </div>
+
+                <button id="run-btn">Run</button>
+
+                <div class="run-output">
+                    <label>Output</label>
+                    <pre id="run-output"></pre>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="/static/problem.js"></script>
+</body>
+</html>
