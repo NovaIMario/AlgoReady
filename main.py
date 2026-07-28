@@ -229,7 +229,8 @@ Point them in the right direction with 2-3 sentences maximum."""
     {editorial_block}
 
     Explain the optimal solution approach and provide a clean C++ solution with comments."""
-
+    else:
+        prompt = f"""{req.custom_question}"""
     try:
         response = client.interactions.create(
             model="gemini-3.6-flash",
