@@ -64,11 +64,11 @@ def get_problem(request: Request, contestId: str, index: str, name: str, rating:
     try:
         
         response = session.get(url)
-        #print("URL fetched:", url)
-        #print("Status code:", response.status_code)
-        #print("Final URL after redirects:", response.url)
-        #print("HTML length:", len(response.text))
-        #print(response.text[:500])
+        print("URL fetched:", url)
+        print("Status code:", response.status_code)
+        print("Final URL after redirects:", response.url)
+        print("HTML length:", len(response.text))
+        print(response.text[:500])
         soup = BeautifulSoup(response.text, "html.parser")
         statement = soup.find("div", class_="problem-statement")
         if statement:
