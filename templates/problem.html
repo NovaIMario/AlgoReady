@@ -1,55 +1,97 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ name }} — {{ contestId }}{{ index }}</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ name }} — AlgoReady</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/static/problem.css">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
-    <script>
-        require.config({
-            paths: {
-                vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs"
-            }
-        });
-    </script>
 </head>
-
 <body>
-    <div class="container">
 
-        <div class="left">
-            <h1>{{ name }}</h1>
-            <div class="meta">
-                Contest: {{ contestId }} — Index: {{ index }} — Rating: {{ rating }}
-            </div>
+<nav class="prob-nav">
+    <a href="/" class="logo">ALGO<span>READY</span></a>
+    <div class="prob-title">
+        <span class="prob-id">{{ contestId }}{{ index }}</span>
+        <span class="prob-name">{{ name }}</span>
+        {% if rating %}
+        <span class="prob-rating">{{ rating }}</span>
+        {% endif %}
+    </div>
+    <div class="lang-switcher">
+        <select id="lang-select" onchange="changeLanguage(this.value)">
+            <option value="cpp">C++</option>
+            <option value="python">Python</option>
+            <option value="java">Java</option>
+        </select>
+    </div>
+</nav>
 
-            <div id="problem-text">
-                {{ problem_html | safe }}
-            </div>
+<!-- Resizable 3-panel layout: problem | editor | ai -->
+<div class="workspace" id="workspace">
+
+    <!-- LEFT: problem statement -->
+    <div class="panel" id="panel-problem">
+        <div class="panel-header">
+            <span>// problem</span>
+            <a href="https://codeforces.com/contest/{{ contestId }}/problem/{{ index }}" target="_blank" class="cf-link">Open on CF ↗</a>
         </div>
-
-        <div class="right">
-            <div id="editor"></div>
-
-            <div class="run-bar">
-                <div class="run-input">
-                    <label>Input</label>
-                    <textarea id="run-input"></textarea>
-                </div>
-
-                <button id="run-btn">Run</button>
-
-                <div class="run-output">
-                    <label>Output</label>
-                    <pre id="run-output"></pre>
-                </div>
-            </div>
+        <div class="panel-body problem-body">
+            {{ problem_html | safe }}
         </div>
-
     </div>
 
-    <script src="/static/problem.js"></script>
+    <div class="resizer" id="resizer-1"></div>
+
+    <!-- MIDDLE: editor + run -->
+    <div class="panel" id="panel-editor">
+        <div class="panel-header">
+            <span>// editor</span>
+            <button class="run-btn" id="run-btn" onclick="runCode()">▶ Run</button>
+        </div>
+        <div id="monaco-editor"></div>
+        <div class="io-section">
+            <div class="io-pane">
+                <label>Input</label>
+                <textarea id="run-input" placeholder="stdin..."></textarea>
+            </div>
+            <div class="io-pane">
+                <label>Output</label>
+                <pre id="run-output"></pre>
+            </div>
+        </div>
+    </div>
+
+    <div class="resizer" id="resizer-2"></div>
+
+    <!-- RIGHT: AI assistant -->
+    <div class="panel" id="panel-ai">
+        <div class="panel-header">
+            <span>// ai assistant</span>
+        </div>
+        <div class="ai-body" id="ai-messages">
+            <div class="ai-welcome">
+                <div class="ai-icon">⚡</div>
+                <p>Ask for a hint or request the full solution.</p>
+            </div>
+        </div>
+        <div class="ai-footer">
+            <textarea id="ai-input" placeholder="Ask anything about this problem..." rows="2"></textarea>
+            <div class="ai-btns">
+                <button class="ai-btn hint-btn" onclick="askAI('hint')">💡 Hint</button>
+                <button class="ai-btn sol-btn" onclick="askAI('solution')">🔍 Solution</button>
+                <button class="ai-btn ask-btn" onclick="askAI('custom')">Send →</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>const PROBLEM_NAME = {{ name | tojson }};</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>
+<script>
+require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }});
+</script>
+<script src="/static/problem.js"></script>
 </body>
 </html>

@@ -1,83 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>AlgoReady</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoReady</title>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
-  <nav class="nav">
+<nav>
     <div class="logo">ALGO<span>READY</span></div>
-    <div class="nav-links"><a href="/">Problems</a></div>
-  </nav>
+    <div class="nav-links">
+        <a href="/">Problems</a>
+    </div>
+</nav>
 
-  <header class="hero">
+<div class="hero">
     <div class="hero-badge">// competitive programming</div>
     <h1>Train smarter.<br><span>Get hired.</span></h1>
-    <p class="hero-sub">Search problems, get AI hints, track your progress</p>
-  </header>
+    <p class="hero-sub">Search Codeforces problems, practice in the editor, get AI hints</p>
+</div>
 
-  <main class="main">
-    <section class="search-section">
-      <div class="search-card">
+<div class="search-section">
+    <div class="search-card">
         <div class="search-row">
 
-          <div class="field autocomplete">
-            <label for="name">Name</label>
-            <input id="name" placeholder="Search problem name..." autocomplete="off" />
-            <div id="name-dropdown" class="dropdown"></div>
-          </div>
+            <div class="field autocomplete">
+                <label>Problem Name</label>
+                <input type="text" id="name" placeholder="Any name" autocomplete="off">
+                <div class="dropdown" id="name-dropdown" style="display:none"></div>
+            </div>
 
-          <div class="field autocomplete">
-            <label for="rating">Rating</label>
-            <input id="rating" placeholder="e.g. 1200" autocomplete="off" />
-            <div id="rating-dropdown" class="dropdown"></div>
-          </div>
+            <div class="field autocomplete">
+                <label>Rating</label>
+                <input type="text" id="rating" placeholder="Any rating" autocomplete="off">
+                <div class="dropdown" id="rating-dropdown" style="display:none"></div>
+            </div>
 
-          <div class="field autocomplete">
-            <label for="tag">Tag</label>
-            <input id="tag" placeholder="e.g. dp" autocomplete="off" />
-            <div id="tag-dropdown" class="dropdown"></div>
-          </div>
+            <div class="field autocomplete">
+                <label>Tag</label>
+                <input type="text" id="tag" placeholder="Any tag" autocomplete="off">
+                <div class="dropdown" id="tag-dropdown" style="display:none"></div>
+            </div>
 
-          <button id="search-btn" onclick="search()">Search →</button>
+            <button onclick="search()">Search →</button>
+
         </div>
-      </div>
-    </section>
-
-    <section id="results-section" class="results-section" hidden>
-      <header class="results-header">
-        <span id="results-count" class="results-count"></span>
-      </header>
-
-      <div id="results" class="results-grid" aria-live="polite"></div>
-
-      <div id="load-more-wrap" class="pagination" hidden>
-        <button id="prev-btn" class="page-btn" onclick="prevPage()">← Prev</button>
-        <button id="next-btn" class="page-btn" onclick="nextPage()">Next →</button>
-      </div>
-    </section>
-
-    <div id="empty" class="empty-state" hidden>
-      <div class="empty-icon">∅</div>
-      <p>No problems found. Try different filters.</p>
     </div>
+</div>
 
-    <div id="error" class="error-state" hidden>
-      <p>Failed to fetch problems.</p>
+<div id="results-section" style="display:none">
+    <div class="results-header">
+        <span class="results-count" id="results-count"></span>
     </div>
-  </main>
+    <div id="results" class="results-grid"></div>
+    <div id="load-more-wrap" style="display:none">
+        <button id="prev-btn" class="nav-btn" onclick="prevPage()">← Prev</button>
+        <span id="page-info" class="page-info"></span>
+        <button id="next-btn" class="nav-btn" onclick="nextPage()">Next →</button>
+    </div>
+</div>
 
-  <script>
-    const NAMES = {{ names | tojson }};
+<div id="empty" class="empty-state" style="display:none">
+    <div class="empty-icon">∅</div>
+    <p>No problems found. Try different filters.</p>
+</div>
+
+<div id="error" class="error-state" style="display:none">
+    <p>Failed to fetch problems. Check your connection.</p>
+</div>
+
+<script>
     const CF_TAGS = {{ cf_tags | tojson }};
+    const NAMES   = {{ names   | tojson }};
     const RATINGS = {{ ratings | tojson }};
-  </script>
-
-  <script src="/static/script.js"></script>
+</script>
+<script src="/static/script.js"></script>
 </body>
 </html>
