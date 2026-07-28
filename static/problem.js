@@ -125,8 +125,10 @@ async function askAI(mode) {
                 problem_name: PROBLEM_NAME,
                 problem_html: '',
                 code: code,
-                mode: mode === 'custom' ? 'hint' : mode,
-                custom_question: customText
+                mode: mode === 'custom' ? 'any' : mode,
+                custom_question: customText,
+                contest_id: CONTEST_ID,
+                problem_index: PROBLEM_INDEX
             })
         });
         const data = await res.json();

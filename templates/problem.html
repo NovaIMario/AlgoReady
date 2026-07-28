@@ -30,18 +30,39 @@
 <!-- Resizable 3-panel layout: problem | editor | ai -->
 <div class="workspace" id="workspace">
 
-    <!-- LEFT: problem statement -->
-    <div class="panel" id="panel-problem">
-        <div class="panel-header">
-            <span>// problem</span>
-            <a href="https://codeforces.com/contest/{{ contestId }}/problem/{{ index }}" target="_blank" class="cf-link">Open on CF ↗</a>
-        </div>
-        <div class="panel-body problem-body">
-            {{ problem_html | safe }}
-        </div>
+   <!-- LEFT: problem statement -->
+<div class="panel" id="panel-problem">
+    <div class="panel-header">
+        <span>// problem</span>
+        <a href="https://codeforces.com/contest/{{ contestId }}/problem/{{ index }}" target="_blank" class="cf-link">Open on CF ↗</a>
+        {% if rating %}<span class="rating-badge">rating: {{ rating }}</span>{% endif %}
     </div>
 
-    <div class="resizer" id="resizer-1"></div>
+    <div class="panel-body problem-body">
+        {{ problem_html | safe }}
+
+        {% if input_spec_html %}
+        <p><strong>Input</strong><br>{{ input_spec_html | safe }}</p>
+        {% endif %}
+
+        {% if output_spec_html %}
+        <p><strong>Output</strong><br>{{ output_spec_html | safe }}</p>
+        {% endif %}
+
+        {% if examples %}
+        {% for ex in examples %}
+        <p><strong>Example {{ loop.index }} — Input</strong></p>
+        <pre class="example-pre">{{ ex.input }}</pre>
+        <p><strong>Example {{ loop.index }} — Output</strong></p>
+        <pre class="example-pre">{{ ex.output }}</pre>
+        {% endfor %}
+        {% endif %}
+
+        {% if note_html %}
+        <p><strong>Note</strong><br>{{ note_html | safe }}</p>
+        {% endif %}
+    </div>
+</div>
 
     <!-- MIDDLE: editor + run -->
     <div class="panel" id="panel-editor">
@@ -87,7 +108,12 @@
 
 </div>
 
-<script>const PROBLEM_NAME = {{ name | tojson }};</script>
+<script>
+    const PROBLEM_NAME = {{ name | tojson }};
+    const CONTEST_ID = {{ contestId | tojson }};
+    const PROBLEM_INDEX = {{ index | tojson }};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js"></script>
 <script>
 require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' }});

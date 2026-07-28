@@ -2,20 +2,20 @@ let allProblems = [];
 const PAGE = 20;
 let currentPage = 0;
 
-const RATING_COLORS = {
-	800: '#aaa', 900: '#aaa', 1000: '#aaa', 1100: '#aaa',
-	1200: '#77ff77', 1300: '#77ff77',
-	1400: '#77ddbb', 1500: '#77ddbb',
-	1600: '#aaaaff', 1700: '#aaaaff', 1800: '#aaaaff',
-	1900: '#ff9999', 2000: '#ff9999',
-	2100: '#ffbb55', 2200: '#ffbb55', 2300: '#ffbb55',
-	2400: '#ffcc88', 2500: '#ffcc88',
-	2600: '#ff8888', 2700: '#ff8888', 2800: '#ff8888',
-	3000: '#ff0000', 3500: '#ff0000'
-};
+function cfColor(rating) {
+    if (rating < 1200) return '#cccccc';      // gray / white
+    if (rating < 1400) return '#77ff77';      // green
+    if (rating < 1600) return '#77ddbb';      // cyan
+    if (rating < 1900) return '#aaaaff';      // blue
+    if (rating < 2100) return '#bb77ff';      // purple
+    if (rating < 2300) return '#ffbb55';      // orange
+    if (rating < 2400) return '#ffcc88';      // yellow-orange
+    if (rating < 2600) return '#ff8888';      // light red
+    return '#ff0000';                         // red
+}
 
 function ratingColor(r) {
-	return RATING_COLORS[r] || '#aaa';
+	return cfColor(r)|| '#aaa';
 }
 
 function renderCard(p) {
@@ -26,7 +26,7 @@ function renderCard(p) {
     <a class="problem-card" href="/problem?contestId=${p.contestId}&index=${p.index}&name=${encodeURIComponent(p.name)}&rating=${p.rating || ''}" target="_blank">
       <div class="card-top">
         <span class="problem-name">${p.name}</span>
-        <span class="problem-rating" style="color:${color}">${rating}</span>
+        <span class="problem-rating" style="background-color:${color}">${rating}</span>
       </div>
       <div class="card-tags">${tags}</div>
       <div class="card-id">${p.contestId}${p.index}</div>

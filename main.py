@@ -11,9 +11,32 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from google import genai
 from dotenv import load_dotenv
+from sqlalchemy import create_engine, text
+import re
+from markupsafe import escape
+
+def format_cf_text(text: str) -> str:
+    if not text:
+        return ""
+
+    # Convert CF's $$$...$$$ into MathJax-compatible \( ... \)
+    text = re.sub(r'\$\$\$(.+?)\$\$\$', r'\\(\1\\)', text)
+
+    # Insert a newline after sentence-ending periods, but not
+    # inside numbers like 3.14 or 1.5
+    text = re.sub(r'(?<!\d)\.(?!\d)', '.\n', text)
+
+    return text
+
+def render_cf_text(text: str) -> str:
+    """Escape HTML then convert our inserted \n into <br> for display."""
+    formatted = format_cf_text(text)
+    return str(escape(formatted)).replace("\n", "<br>\n")
 
 
 load_dotenv() 
+
+engine = create_engine(os.getenv("DATABASE_URL"), connect_args={"sslmode": "require"})
 api_key = os.environ.get("GEMINI_API_KEY")
 client = None
 
@@ -48,71 +71,83 @@ def home(request: Request):
         context={"cf_tags": CF_TAGS, "names": NAMES, "ratings": RATINGS}
     )
 
+from sqlalchemy import text
+
 @app.get("/problem")
 def get_problem(request: Request, contestId: str, index: str, name: str, rating: str):
-    url = f"https://codeforces.com/problemset/problem/{contestId}/{index}"
-    session = requests.Session()
-    session.headers.update({
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/138.0 Safari/537.36"
-        ),
-        "Accept-Language": "en-US,en;q=0.9"
-    })
-    session.get("https://codeforces.com")
-    try:
-        
-        response = session.get(url)
-        print("URL fetched:", url)
-        print("Status code:", response.status_code)
-        print("Final URL after redirects:", response.url)
-        print("HTML length:", len(response.text))
-        print(response.text[:500])
-        soup = BeautifulSoup(response.text, "html.parser")
-        statement = soup.find("div", class_="problem-statement")
-        if statement:
-            for div in statement.find_all("div", class_=[
-                "input-specification", "output-specification",
-                "note", "sample-tests"
-            ]):
-                div.decompose()
-            problem_html = str(statement)
-        else:
-            problem_html = "<p>Could not load problem text.</p>"
-    except Exception as e:
-        print(f"Failed {contestId}{index}: {e}")
-        problem_html = "<p>Error loading problem.</p>"
+    with engine.connect() as conn:
+        row = conn.execute(
+            text("""
+                SELECT statement, input_spec, output_spec, note, examples
+                FROM problems
+                WHERE contest_id = :cid AND problem_index = :idx
+            """),
+            {"cid": contestId, "idx": index}
+        ).fetchone()
+
+    if not row:
+        return templates.TemplateResponse(
+            request=request,
+            name="problem.html",
+            context={"problem_html": "<p>Could not load problem text.</p>"}
+        )
 
     return templates.TemplateResponse(
         request=request,
         name="problem.html",
-        context={
+        context={ 
+            "name": name,
+            "problem_html": render_cf_text(row.statement),
+            "input_spec_html": render_cf_text(row.input_spec),
+            "output_spec_html": render_cf_text(row.output_spec),
+            "note_html": render_cf_text(row.note),
+            "examples": row.examples,
+            "rating": rating,
             "contestId": contestId,
             "index": index,
-            "name": name,
-            "rating": rating,
-            "problem_html": problem_html
         }
     )
 
 @app.get("/problems")
 def get_problems(name: str = None, rating: int = None, tag: str = None):
     start = time.time()
-    # brute force — fetches from API every time (to be optimised later)
-    response = requests.get("https://codeforces.com/api/problemset.problems?lang=en")
-    data = response.json()
-    problems = data["result"]["problems"]
-    filtered = problems[::]
-    if rating:
-        filtered = [p for p in filtered if p.get("rating") == rating]
-    if tag:
-        filtered = [p for p in filtered if tag in p.get("tags", [])]
+
+    query = """
+        SELECT contest_id, problem_index, name, rating, tags
+        FROM problems
+        WHERE 1=1
+    """
+    params = {}
+
     if name:
-        filtered = [p for p in filtered if name.lower() in p.get("name", "").lower()]
+        query += " AND name ILIKE :name"
+        params["name"] = f"%{name}%"
+
+    if rating:
+        query += " AND rating = :rating"
+        params["rating"] = rating
+
+    if tag:
+        query += " AND :tag = ANY(tags)"
+        params["tag"] = tag
+
+    with engine.connect() as conn:
+        rows = conn.execute(text(query), params).fetchall()
+
     end = (time.time() - start) * 1000
     print(f"Search took {end:.2f}ms")
-    return filtered
+
+    return [
+        {
+            "contestId": r.contest_id,
+            "index": r.problem_index,
+            "name": r.name,
+            "rating": r.rating,
+            "tags": r.tags,
+        }
+        for r in rows
+    ]
+
 
 class RunRequest(BaseModel):
     code: str
@@ -145,7 +180,22 @@ class HintRequest(BaseModel):
     problem_name: str
     problem_html: str
     code: str
-    mode: str  # "hint" or "solution"
+    mode: str  # "hint" or "solution" or "any"
+    custom_question: str
+    contest_id: str
+    problem_index: str
+
+def get_editorial_for_problem(contest_id: int, problem_index: str) -> str | None:
+    with engine.connect() as conn:
+        result = conn.execute(
+            text("""
+            SELECT editorial_text FROM problems
+            WHERE contest_id = :contest_id AND problem_index = :problem_index
+            """),
+            {"contest_id": contest_id, "problem_index": problem_index},
+        )
+        row = result.fetchone()
+        return row[0] if row and row[0] else None
 
 @app.post("/ai-help")
 def ai_help(req: HintRequest):
@@ -162,14 +212,24 @@ Their current code:
 
 Give a helpful HINT only — do not reveal the full solution or algorithm directly.
 Point them in the right direction with 2-3 sentences maximum."""
-    else:
+    elif req.mode == "solution":
+        # Fetch the editorial for this problem from Supabase
+        editorial_text = get_editorial_for_problem(req.contest_id, req.problem_index)
+
+        editorial_block = (
+            f"\n\nOfficial editorial for reference:\n{editorial_text}"
+            if editorial_text
+            else "\n\n(No official editorial is available for this problem.)"
+        )
+
         prompt = f"""You are a competitive programming coach.
-The user is solving: {req.problem_name}
+    The user is solving: {req.problem_name}
 
-Their current code:
-{req.code}
+    Their current code:
+    {req.code}
+    {editorial_block}
 
-Explain the optimal solution approach and provide a clean C++ solution with comments."""
+    Explain the optimal solution approach and provide a clean C++ solution with comments."""
 
     try:
         response = client.interactions.create(
