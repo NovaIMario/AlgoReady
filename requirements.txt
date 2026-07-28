@@ -8,3 +8,4 @@ jinja2
 pydantic
 sqlalchemy
 markupsafe
+psycopg2-binary

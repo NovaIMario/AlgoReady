@@ -3,7 +3,6 @@ import tempfile
 import time
 import os
 from contextlib import asynccontextmanager
-from bs4 import BeautifulSoup
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 import requests
