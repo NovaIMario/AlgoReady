@@ -2,6 +2,43 @@ let allProblems = [];
 const PAGE = 20;
 let currentPage = 0;
 
+class TrieNode {
+    constructor() {
+        this.children = {};
+        this.names = [];
+    }
+}
+
+class Trie {
+    constructor() {
+        this.root = new TrieNode();
+    }
+
+    insert(name) {
+        let node = this.root;
+        const lower = name.toLowerCase();
+        for (const ch of lower) {
+            if (!node.children[ch]) node.children[ch] = new TrieNode();
+            node = node.children[ch];
+            node.names.push(name);
+        }
+    }
+
+    searchPrefix(prefix, limit = 50) {
+        let node = this.root;
+        const lower = prefix.toLowerCase();
+        for (const ch of lower) {
+            if (!node.children[ch]) return [];
+            node = node.children[ch];
+        }
+        return node.names.slice(0, limit);
+    }
+}
+
+// Build once, when NAMES is available
+const nameTrie = new Trie();
+NAMES.forEach(name => nameTrie.insert(name));
+
 function cfColor(rating) {
     if (rating < 1200) return '#cccccc';      // gray / white
     if (rating < 1400) return '#77ff77';      // green
@@ -173,14 +210,20 @@ document.getElementById('name').addEventListener('focus', function () {
 });
 
 document.getElementById('name').addEventListener('input', function () {
-	const typed = this.value.toLowerCase();
-	const matches = NAMES.filter(t => t.toLowerCase().startsWith(typed));
-	const dropdown = document.getElementById('name-dropdown');
-	if (matches.length === 0) {
-		dropdown.innerHTML = '';
-		return;
-	}
-	showDropdown(dropdown, matches, "Any name");
+    const typed = this.value;
+    const dropdown = document.getElementById('name-dropdown');
+
+    if (!typed) {
+        dropdown.innerHTML = '';
+        return;
+    }
+
+    const matches = nameTrie.searchPrefix(typed);
+    if (matches.length === 0) {
+        dropdown.innerHTML = '';
+        return;
+    }
+    showDropdown(dropdown, matches, "Any name");
 });
 
 document.getElementById('rating').addEventListener('focus', function () {
