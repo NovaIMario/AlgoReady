@@ -15,7 +15,9 @@
         <span class="prob-id">{{ contestId }}{{ index }}</span>
         <span class="prob-name">{{ name }}</span>
         {% if rating %}
-        <span class="prob-rating">{{ rating }}</span>
+        <span class="prob-rating" {% if is_predicted %}title="Predicted rating (no official rating found)"{% endif %}>
+            {{ '~' if is_predicted else '' }}{{ rating }}
+        </span>
         {% endif %}
     </div>
     <div class="lang-switcher">
@@ -35,7 +37,11 @@
     <div class="panel-header">
         <span>// problem</span>
         <a href="https://codeforces.com/contest/{{ contestId }}/problem/{{ index }}" target="_blank" class="cf-link">Open on CF ↗</a>
-        {% if rating %}<span class="rating-badge">rating: {{ rating }}</span>{% endif %}
+        {% if rating %}
+        <span class="rating-badge">
+            rating: {{ '~' if is_predicted else '' }}{{ rating }}{{ ' (predicted)' if is_predicted else '' }}
+        </span>
+        {% endif %}
     </div>
 
     <div class="panel-body problem-body">

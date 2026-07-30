@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 import re
 from markupsafe import escape
+from sqlalchemy import text
 
 def format_cf_text(text: str) -> str:
     if not text:
@@ -70,10 +71,8 @@ def home(request: Request):
         context={"cf_tags": CF_TAGS, "names": NAMES, "ratings": RATINGS}
     )
 
-from sqlalchemy import text
-
 @app.get("/problem")
-def get_problem(request: Request, contestId: str, index: str, name: str, rating: str):
+def get_problem(request: Request, contestId: str, index: str, name: str, rating: str = "", predicted: str = ""):
     with engine.connect() as conn:
         row = conn.execute(
             text("""
@@ -94,7 +93,7 @@ def get_problem(request: Request, contestId: str, index: str, name: str, rating:
     return templates.TemplateResponse(
         request=request,
         name="problem.html",
-        context={ 
+        context={
             "name": name,
             "problem_html": render_cf_text(row.statement),
             "input_spec_html": render_cf_text(row.input_spec),
@@ -102,6 +101,7 @@ def get_problem(request: Request, contestId: str, index: str, name: str, rating:
             "note_html": render_cf_text(row.note),
             "examples": row.examples,
             "rating": rating,
+            "is_predicted": predicted == "1",
             "contestId": contestId,
             "index": index,
         }

@@ -56,7 +56,6 @@ function ratingColor(r) {
 }
 
 const RATING_API_URL = "https://cfseer.onrender.com/predict-rating";
-
 async function fillMissingRatings() {
 	const spans = document.querySelectorAll('[data-need-rating]');
 
@@ -76,6 +75,15 @@ async function fillMissingRatings() {
 				span.textContent = `~${data.predicted_rating}`;
 				span.style.color = ratingColor(data.predicted_rating);
 				span.title = "Predicted rating (no official rating found)";
+
+				// Update the parent card's link so the problem page gets this rating too
+				const card = span.closest('a.problem-card');
+				if (card) {
+					const url = new URL(card.href);
+					url.searchParams.set('rating', data.predicted_rating);
+					url.searchParams.set('predicted', '1');
+					card.href = url.toString();
+				}
 			} else {
 				span.textContent = '?';
 			}
