@@ -55,15 +55,52 @@ function ratingColor(r) {
 	return cfColor(r)|| '#aaa';
 }
 
+const RATING_API_URL = "https://cfseer.onrender.com/predict-rating";
+
+async function fillMissingRatings() {
+	const spans = document.querySelectorAll('[data-need-rating]');
+
+	for (const span of spans) {
+		const contestId = parseInt(span.dataset.contestId, 10);
+		const problemIndex = span.dataset.problemIndex;
+
+		try {
+			const resp = await fetch(RATING_API_URL, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ contest_id: contestId, problem_index: problemIndex })
+			});
+			const data = await resp.json();
+
+			if (resp.ok && data.predicted_rating) {
+				span.textContent = `~${data.predicted_rating}`;
+				span.style.color = ratingColor(data.predicted_rating);
+				span.title = "Predicted rating (no official rating found)";
+			} else {
+				span.textContent = '?';
+			}
+		} catch (err) {
+			console.error("Rating fetch failed for", contestId, problemIndex, err);
+			span.textContent = '?';
+		}
+
+		span.removeAttribute('data-need-rating');
+	}
+}
 function renderCard(p) {
-	const rating = p.rating || '?';
-	const color = p.rating ? ratingColor(p.rating) : '#555';
+	const hasRating = !!p.rating;
+	const rating = p.rating || '…';
+	const color = hasRating ? ratingColor(p.rating) : '#555';
 	const tags = (p.tags || []).map(t => `<span class="tag">${t}</span>`).join('');
 	return `
     <a class="problem-card" href="/problem?contestId=${p.contestId}&index=${p.index}&name=${encodeURIComponent(p.name)}&rating=${p.rating || ''}" target="_blank">
       <div class="card-top">
         <span class="problem-name">${p.name}</span>
-        <span class="problem-rating" style="background-color:${color}">${rating}</span>
+        <span class="problem-rating"
+              style="color:${color}"
+              ${!hasRating ? `data-need-rating data-contest-id="${p.contestId}" data-problem-index="${p.index}"` : ''}>
+          ${rating}
+        </span>
       </div>
       <div class="card-tags">${tags}</div>
       <div class="card-id">${p.contestId}${p.index}</div>
@@ -119,12 +156,12 @@ async function search() {
 		document.getElementById('load-more-wrap').style.display = "none";
 	}
 }
-
 function renderPage() {
 	const container = document.getElementById('results');
 	const start = currentPage * PAGE;
 	const pageItems = allProblems.slice(start, start + PAGE);
 	container.innerHTML = pageItems.map(renderCard).join('');
+	fillMissingRatings();
 
 	const total = allProblems.length;
 	const from = total === 0 ? 0 : start + 1;
