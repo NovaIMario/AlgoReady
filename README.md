@@ -9,7 +9,7 @@ A full-stack competitive programming platform for browsing, searching, and solvi
 
 ## Features
 
-- **Problem search** over an 10K+ problem corpus, powered by a Trie-based prefix search (`O(k)` lookup vs. the original `O(n)` linear scan — a ~180x reduction in average query latency, from 0.36ms to 0.002ms).
+- **Problem search** over an 11K+ problem corpus, powered by a Trie-based prefix search (`O(k)` lookup vs. the original `O(n)` linear scan — a ~180x reduction in average query latency, from 0.36ms to 0.002ms).
 - **In-browser code editor** (Monaco Editor) supporting C++, Python, and Java, with server-side execution via a sandboxed subprocess and a 2-second timeout to prevent runaway code.
 - **AI assistant** powered by the Gemini API, providing contextual hints and solution walkthroughs for the problem currently open.
 - **Resizable three-panel workspace**: problem statement, code editor, and AI chat side by side, with UX inspired by platforms like LeetCode and Codeforces.
