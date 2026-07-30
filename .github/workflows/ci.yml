@@ -20,6 +20,9 @@ jobs:
 
       - name: Import check
         run: python -c "import main"
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
       - name: Start server and smoke test
         run: |
